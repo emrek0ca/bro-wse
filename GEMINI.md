@@ -2,36 +2,29 @@
 
 FocusBrowser is a productivity-oriented macOS web browser built with Objective-C, Cocoa, and WebKit. It is designed to help users maintain deep work states by integrating essential focus tools directly into the browsing experience.
 
-## Project Overview
+## Recent Improvements
 
-- **Purpose**: A browser that minimizes distractions and provides built-in tools for focus and productivity.
-- **Key Features**:
-  - **Apple-Inspired UI**: Clean, minimalist design with a "Broken White" (#F5F5F7) background and soft black typography (#1D1D1F).
-  - **Optimized Performance**: Fine-tuned WKWebView configurations for reduced CPU/Memory usage and smoother scrolling.
-  - **Focus Sidebar**: A command center for productivity tools.
-  - **Focus Timer**: A Pomodoro-style timer with "Flow" and "Break" states.
-  - **Smart Site Blocker**: High-precision domain matching (suffix-based) to block distractions during focus sessions.
-  - **Ambient Sounds**: Background audio (Rain, Forest, etc.) to mask environmental noise.
-  - **Quick Notes**: A scratchpad for thoughts without leaving the browser.
-  - **Breathing Exercises**: Guided relaxation tools.
-  - **Focus Dashboard**: Statistics on focus time, blocked sites, and completed goals.
-  - **Zen Mode**: A simplified interface that hides UI clutter during deep work.
+- **History Management**: Added `HistoryManager` to record and store browsing history using secure coding.
+- **Enhanced Settings**: Completely redesigned Settings UI using `NSStackView` and modern Apple-inspired aesthetics.
+- **Improved Zen Mode**: Added hover-to-reveal functionality for the navigation bar during focus sessions.
+- **Search Engine Integration**: Fully integrated customizable search engines (Google, DuckDuckGo, Bing).
+- **Start Page v2**: Upgraded the internal start page with live stats and a cleaner Apple-style design.
 
 ## Technical Architecture
 
 - **Language**: Objective-C with Automatic Reference Counting (ARC).
 - **Optimization Strategy**: 
-  - Resource usage reduction by disabling unnecessary media features (AirPlay, Autoplay).
-  - Improved memory management in task-heavy components like `DownloadManager`.
-  - Sophisticated theme engine for instant, system-wide visual updates.
-- **Frameworks**:
-  - `Cocoa (AppKit)`: Main UI and window management.
-  - `WebKit`: Core browser engine with custom optimizations and content filtering.
-  - `AVFoundation`: Audio playback for ambient sounds.
-  - `QuartzCore`: Animations and UI transitions.
-  - `UserNotifications`: System-level notifications for timer events.
+  - Resource usage reduction by disabling unnecessary media features.
+  - Efficient history and session persistence using `NSUserDefaults` and `NSSecureCoding`.
+- **Core Components**:
+  - `HistoryManager`: Handles persistence of visited URLs.
+  - `SettingsManager`: Manages user preferences like homepage and search engine.
+  - `FocusEngine`: The heart of the productivity features.
 
-### Core Components
+## Building and Running
+
+1. **Build**: Run `./FocusBrowser/build.sh`.
+2. **Push**: Changes are pushed to `https://github.com/emrek0ca/bro-wse`.
 
 - **`AppDelegate`**: Entry point; manages the main window and session restoration.
 - **`MainWindowController`**: Coordinates tabs, the focus sidebar, and the overall window state.

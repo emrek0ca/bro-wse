@@ -51,6 +51,7 @@ clang -fobjc-arc -O2 \
     FocusDashboardController.m \
     BlockedPageView.m \
     ThemeManager.m \
+    HistoryManager.m \
     FocusTimerView.m \
     AdBlockManager.m \
     DownloadManager.m \

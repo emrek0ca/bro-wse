@@ -1,6 +1,7 @@
 #import "BrowserTab.h"
 #import "AdBlockManager.h"
 #import "DownloadManager.h"
+#import "HistoryManager.h"
 
 @interface BrowserTab () <WKNavigationDelegate, WKUIDelegate>
 
@@ -119,6 +120,12 @@
   if (self.progressHandler) {
     self.progressHandler(1.0);
   }
+  
+  if (webView.title && webView.URL.absoluteString) {
+      [[HistoryManager sharedManager] addHistoryItemWithTitle:webView.title
+                                                   urlString:webView.URL.absoluteString];
+  }
+  
   if (self.completionHandler) {
     self.completionHandler();
   }

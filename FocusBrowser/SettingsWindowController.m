@@ -1,5 +1,6 @@
 #import "SettingsWindowController.h"
 #import "SettingsManager.h"
+#import "ThemeManager.h"
 
 @interface SettingsWindowController ()
 
@@ -12,12 +13,16 @@
 @implementation SettingsWindowController
 
 - (instancetype)init {
-    NSWindow *window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 450, 200)
+    NSWindow *window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 480, 260)
                                                    styleMask:NSWindowStyleMaskTitled |
-                                                             NSWindowStyleMaskClosable
+                                                             NSWindowStyleMaskClosable |
+                                                             NSWindowStyleMaskFullSizeContentView
                                                      backing:NSBackingStoreBuffered
                                                        defer:NO];
     window.title = @"Settings";
+    window.titlebarAppearsTransparent = YES;
+    window.titleVisibility = NSWindowTitleHidden;
+    window.backgroundColor = [[ThemeManager sharedManager] backgroundColor];
     [window center];
 
     self = [super initWithWindow:window];
@@ -32,56 +37,80 @@
     NSView *content = self.window.contentView;
     content.wantsLayer = YES;
 
-    CGFloat y = 150;
-    CGFloat labelWidth = 120;
-    CGFloat fieldX = 140;
+    NSStackView *mainStack = [[NSStackView alloc] init];
+    mainStack.translatesAutoresizingMaskIntoConstraints = NO;
+    mainStack.orientation = NSUserInterfaceLayoutOrientationVertical;
+    mainStack.alignment = NSLayoutAttributeLeading;
+    mainStack.spacing = 20;
+    mainStack.edgeInsets = NSEdgeInsetsMake(40, 30, 30, 30);
+    [content addSubview:mainStack];
 
-    // Homepage
-    NSTextField *homepageLabel = [self createLabel:@"Homepage:"];
-    homepageLabel.frame = NSMakeRect(20, y, labelWidth, 22);
-    [content addSubview:homepageLabel];
+    [NSLayoutConstraint activateConstraints:@[
+        [mainStack.topAnchor constraintEqualToAnchor:content.topAnchor],
+        [mainStack.leadingAnchor constraintEqualToAnchor:content.leadingAnchor],
+        [mainStack.trailingAnchor constraintEqualToAnchor:content.trailingAnchor],
+    ]];
 
-    self.homepageField = [[NSTextField alloc] initWithFrame:NSMakeRect(fieldX, y, 280, 24)];
+    // Title
+    NSTextField *titleLabel = [NSTextField labelWithString:@"Settings"];
+    titleLabel.font = [NSFont systemFontOfSize:18 weight:NSFontWeightBold];
+    titleLabel.textColor = [[ThemeManager sharedManager] textPrimaryColor];
+    [mainStack addArrangedSubview:titleLabel];
+
+    [mainStack addArrangedSubview:[self createSeparator]];
+
+    // Homepage Row
+    NSStackView *homepageRow = [self createRowWithLabel:@"Homepage:"];
+    self.homepageField = [[NSTextField alloc] init];
+    self.homepageField.translatesAutoresizingMaskIntoConstraints = NO;
     self.homepageField.placeholderString = @"https://www.apple.com";
     self.homepageField.bezelStyle = NSTextFieldRoundedBezel;
+    self.homepageField.focusRingType = NSFocusRingTypeNone;
     self.homepageField.target = self;
     self.homepageField.action = @selector(homepageChanged:);
-    [content addSubview:self.homepageField];
+    [homepageRow addArrangedSubview:self.homepageField];
+    [mainStack addArrangedSubview:homepageRow];
+    [self.homepageField.widthAnchor constraintEqualToConstant:250].active = YES;
 
-    y -= 40;
-
-    // Search Engine
-    NSTextField *searchLabel = [self createLabel:@"Search Engine:"];
-    searchLabel.frame = NSMakeRect(20, y, labelWidth, 22);
-    [content addSubview:searchLabel];
-
-    self.searchEnginePopup = [[NSPopUpButton alloc] initWithFrame:NSMakeRect(fieldX, y, 150, 26) pullsDown:NO];
+    // Search Engine Row
+    NSStackView *searchRow = [self createRowWithLabel:@"Search Engine:"];
+    self.searchEnginePopup = [[NSPopUpButton alloc] initWithFrame:NSZeroRect pullsDown:NO];
     [self.searchEnginePopup addItemsWithTitles:@[@"Google", @"DuckDuckGo", @"Bing"]];
     self.searchEnginePopup.target = self;
     self.searchEnginePopup.action = @selector(searchEngineChanged:);
-    [content addSubview:self.searchEnginePopup];
-
-    y -= 40;
+    [searchRow addArrangedSubview:self.searchEnginePopup];
+    [mainStack addArrangedSubview:searchRow];
 
     // Restore Session
-    self.restoreSessionCheckbox = [[NSButton alloc] initWithFrame:NSMakeRect(fieldX, y, 250, 22)];
-    self.restoreSessionCheckbox.title = @"Restore tabs on launch";
-    [self.restoreSessionCheckbox setButtonType:NSButtonTypeSwitch];
-    self.restoreSessionCheckbox.target = self;
-    self.restoreSessionCheckbox.action = @selector(restoreSessionChanged:);
-    [content addSubview:self.restoreSessionCheckbox];
+    self.restoreSessionCheckbox = [NSButton checkboxWithTitle:@"Restore tabs on launch" target:self action:@selector(restoreSessionChanged:)];
+    self.restoreSessionCheckbox.font = [NSFont systemFontOfSize:13];
+    self.restoreSessionCheckbox.contentTintColor = [[ThemeManager sharedManager] textPrimaryColor];
+    [mainStack addArrangedSubview:self.restoreSessionCheckbox];
 }
 
-- (NSTextField *)createLabel:(NSString *)text {
-    NSTextField *label = [[NSTextField alloc] init];
-    label.stringValue = text;
-    label.bordered = NO;
-    label.editable = NO;
-    label.selectable = NO;
-    label.drawsBackground = NO;
-    label.font = [NSFont systemFontOfSize:13];
+- (NSStackView *)createRowWithLabel:(NSString *)text {
+    NSStackView *row = [[NSStackView alloc] init];
+    row.orientation = NSUserInterfaceLayoutOrientationHorizontal;
+    row.alignment = NSLayoutAttributeCenterY;
+    row.spacing = 10;
+    
+    NSTextField *label = [NSTextField labelWithString:text];
+    label.font = [NSFont systemFontOfSize:13 weight:NSFontWeightMedium];
+    label.textColor = [[ThemeManager sharedManager] textSecondaryColor];
     label.alignment = NSTextAlignmentRight;
-    return label;
+    [label.widthAnchor constraintEqualToConstant:100].active = YES;
+    
+    [row addArrangedSubview:label];
+    return row;
+}
+
+- (NSView *)createSeparator {
+    NSView *sep = [[NSView alloc] init];
+    sep.translatesAutoresizingMaskIntoConstraints = NO;
+    sep.wantsLayer = YES;
+    sep.layer.backgroundColor = [[ThemeManager sharedManager] borderColor].CGColor;
+    [sep.heightAnchor constraintEqualToConstant:1].active = YES;
+    return sep;
 }
 
 - (void)loadCurrentSettings {
@@ -94,7 +123,7 @@
 - (void)homepageChanged:(id)sender {
     NSString *value = self.homepageField.stringValue;
     if (value.length > 0) {
-        if (![value hasPrefix:@"http://"] && ![value hasPrefix:@"https://"]) {
+        if (![value hasPrefix:@"http://"] && ![value hasPrefix:@"https://"] && ![value hasPrefix:@"focus://"]) {
             value = [@"https://" stringByAppendingString:value];
             self.homepageField.stringValue = value;
         }
