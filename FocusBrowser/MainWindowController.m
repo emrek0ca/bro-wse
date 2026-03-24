@@ -527,10 +527,11 @@ static const CGFloat kAnimationDuration = 0.2;
                         action:(SEL)action {
   NSButton *button = [[NSButton alloc] init];
   button.translatesAutoresizingMaskIntoConstraints = NO;
-  button.bezelStyle = NSBezelStyleTexturedRounded;
   button.bordered = NO;
   button.target = self;
   button.action = action;
+  button.wantsLayer = YES;
+  button.layer.cornerRadius = 6.0;
   [button setButtonType:NSButtonTypeMomentaryPushIn];
 
   if (@available(macOS 11.0, *)) {
@@ -538,17 +539,16 @@ static const CGFloat kAnimationDuration = 0.2;
                                accessibilityDescription:nil];
     if (image) {
       NSImageSymbolConfiguration *config = [NSImageSymbolConfiguration
-          configurationWithPointSize:14
-                              weight:NSFontWeightRegular];
+          configurationWithPointSize:13
+                              weight:NSFontWeightMedium];
       button.image = [image imageWithSymbolConfiguration:config];
       button.imagePosition = NSImageOnly;
+      button.contentTintColor = [[ThemeManager sharedManager] textPrimaryColor];
     } else {
       button.title = fallback;
-      button.font = [NSFont systemFontOfSize:16 weight:NSFontWeightLight];
     }
   } else {
     button.title = fallback;
-    button.font = [NSFont systemFontOfSize:16 weight:NSFontWeightLight];
   }
 
   return button;

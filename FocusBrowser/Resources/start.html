@@ -7,21 +7,26 @@
     <title>Focus Start</title>
     <style>
         :root {
-            --bg-color: #1e1e1e;
-            --text-color: #ffffff;
-            --accent-color: #0a84ff;
-            --secondary-bg: #2c2c2e;
-            --input-bg: #3a3a3c;
-            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            /* Apple-inspired "Broken White" Palette */
+            --bg-color: #F5F5F7;
+            --text-primary: #1D1D1F;
+            --text-secondary: #86868B;
+            --accent-color: #0071E3;
+            --card-bg: #FFFFFF;
+            --input-bg: #FFFFFF;
+            --border-color: rgba(0,0,0,0.05);
+            --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
         }
 
-        @media (prefers-color-scheme: light) {
+        @media (prefers-color-scheme: dark) {
             :root {
-                --bg-color: #fbfbfd;
-                --text-color: #1d1d1f;
-                --accent-color: #007aff;
-                --secondary-bg: #f2f2f7;
-                --input-bg: #e5e5ea;
+                --bg-color: #121212;
+                --text-primary: #F5F5F7;
+                --text-secondary: #A1A1A6;
+                --accent-color: #0071E3;
+                --card-bg: #1C1C1E;
+                --input-bg: #1C1C1E;
+                --border-color: rgba(255,255,255,0.1);
             }
         }
 
@@ -29,7 +34,7 @@
             margin: 0;
             padding: 0;
             background-color: var(--bg-color);
-            color: var(--text-color);
+            color: var(--text-primary);
             font-family: var(--font-family);
             display: flex;
             flex-direction: column;
@@ -37,124 +42,161 @@
             justify-content: center;
             height: 100vh;
             overflow: hidden;
-            transition: background-color 0.3s, color 0.3s;
+            transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .container {
             text-align: center;
             width: 100%;
-            max-width: 600px;
-            padding: 20px;
+            max-width: 800px;
+            padding: 40px;
+            z-index: 1;
         }
 
         .time {
-            font-size: 6rem;
-            font-weight: 200;
-            letter-spacing: -2px;
-            margin-bottom: 10px;
+            font-size: 7rem;
+            font-weight: 700;
+            letter-spacing: -3px;
+            margin-bottom: 0px;
             font-variant-numeric: tabular-nums;
+            background: linear-gradient(180deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .date {
-            font-size: 1.5rem;
-            font-weight: 400;
-            color: var(--accent-color);
-            margin-bottom: 40px;
-            opacity: 0.9;
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 50px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
 
         .search-container {
             position: relative;
             width: 100%;
-            margin-bottom: 50px;
+            max-width: 500px;
+            margin: 0 auto 60px;
         }
 
         .search-input {
             width: 100%;
-            padding: 16px 24px;
-            font-size: 1.2rem;
-            border: none;
-            border-radius: 16px;
+            padding: 18px 28px;
+            font-size: 1.1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
             background-color: var(--input-bg);
-            color: var(--text-color);
+            color: var(--text-primary);
             outline: none;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-sizing: border-box;
+            text-align: center;
         }
 
         .search-input:focus {
             transform: scale(1.02);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+            border-color: var(--accent-color);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.5;
         }
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 20px;
             width: 100%;
         }
 
         .stat-card {
-            background-color: var(--secondary-bg);
-            padding: 20px;
-            border-radius: 16px;
+            background-color: var(--card-bg);
+            padding: 24px 16px;
+            border-radius: 24px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            transition: transform 0.2s;
+            border: 1px solid var(--border-color);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: default;
         }
 
         .stat-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.06);
         }
 
         .stat-value {
-            font-size: 2rem;
-            font-weight: 600;
-            margin-bottom: 5px;
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: var(--accent-color);
         }
 
         .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.7;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
         }
 
         .greeting {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            font-size: 1rem;
-            opacity: 0.5;
+            top: 40px;
+            left: 40px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        
+        /* Subtle background decoration */
+        .bg-blob {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(0, 113, 227, 0.05) 0%, rgba(255, 255, 255, 0) 70%);
+            border-radius: 50%;
+            z-index: 0;
+            filter: blur(60px);
         }
     </style>
 </head>
 
 <body>
+    <div class="bg-blob" style="top: -200px; right: -200px;"></div>
+    <div class="bg-blob" style="bottom: -200px; left: -200px;"></div>
 
-    <div class="greeting" id="greeting">Good Morning</div>
+    <div class="greeting" id="greeting">GOOD MORNING</div>
 
     <div class="container">
         <div class="time" id="clock">00:00</div>
-        <div class="date" id="date">Monday, January 1</div>
+        <div class="date" id="date">MONDAY, JANUARY 1</div>
 
         <div class="search-container">
-            <input type="text" class="search-input" id="searchInput" placeholder="Search the web..." autofocus>
+            <input type="text" class="search-input" id="searchInput" placeholder="Where to next?" autofocus>
         </div>
 
         <div class="stats-grid">
-            <div class="stat-card">
+            <div class="stat-card" id="card-score">
                 <div class="stat-value">--</div>
                 <div class="stat-label">Focus Score</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card" id="card-pomodoros">
                 <div class="stat-value">--</div>
                 <div class="stat-label">Pomodoros</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card" id="card-minutes">
+                <div class="stat-value">--</div>
+                <div class="stat-label">Minutes</div>
+            </div>
+            <div class="stat-card" id="card-blocked">
                 <div class="stat-value">--</div>
                 <div class="stat-label">Blocked</div>
             </div>
@@ -169,13 +211,13 @@
             document.getElementById('clock').textContent = `${hours}:${minutes}`;
 
             const options = { weekday: 'long', month: 'long', day: 'numeric' };
-            document.getElementById('date').textContent = now.toLocaleDateString(undefined, options);
+            document.getElementById('date').textContent = now.toLocaleDateString(undefined, options).toUpperCase();
 
             const hr = now.getHours();
-            let greet = "Welcome";
-            if (hr < 12) greet = "Good Morning";
-            else if (hr < 18) greet = "Good Afternoon";
-            else greet = "Good Evening";
+            let greet = "WELCOME";
+            if (hr < 12) greet = "GOOD MORNING";
+            else if (hr < 18) greet = "GOOD AFTERNOON";
+            else greet = "GOOD EVENING";
             document.getElementById('greeting').textContent = greet;
         }
 
@@ -193,7 +235,6 @@
                     } else if (query.includes('.') && !query.includes(' ')) {
                         window.location.href = 'https://' + query;
                     } else {
-                        // Default to Google for now
                         window.location.href = 'https://www.google.com/search?q=' + encodeURIComponent(query);
                     }
                 }
@@ -204,19 +245,19 @@
         window.updateStats = function (data) {
             if (!data) return;
 
-            document.querySelectorAll('.stat-card').forEach(card => {
-                const label = card.querySelector('.stat-label').textContent.toLowerCase();
-                const valueEl = card.querySelector('.stat-value');
-
-                if (label.includes('score')) {
-                    valueEl.textContent = Math.round(data.score);
-                    card.title = data.scoreDescription || '';
-                } else if (label.includes('pomodoros')) {
-                    valueEl.textContent = data.pomodoros;
-                } else if (label.includes('blocked')) {
-                    valueEl.textContent = data.blocked;
-                }
-            });
+            if (data.score !== undefined) {
+                document.querySelector('#card-score .stat-value').textContent = Math.round(data.score);
+                document.querySelector('#card-score').title = data.scoreDescription || '';
+            }
+            if (data.pomodoros !== undefined) {
+                document.querySelector('#card-pomodoros .stat-value').textContent = data.pomodoros;
+            }
+            if (data.focusMinutes !== undefined) {
+                document.querySelector('#card-minutes .stat-value').textContent = data.focusMinutes;
+            }
+            if (data.blocked !== undefined) {
+                document.querySelector('#card-blocked .stat-value').textContent = data.blocked;
+            }
         };
     </script>
 </body>
