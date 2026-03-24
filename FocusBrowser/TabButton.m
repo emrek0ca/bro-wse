@@ -22,7 +22,7 @@
 
 - (void)setup {
   self.wantsLayer = YES;
-  self.layer.cornerRadius = 6;
+  self.layer.cornerRadius = 8;
 
   // Title label
   self.titleLabel = [[NSTextField alloc] init];
@@ -31,39 +31,47 @@
   self.titleLabel.editable = NO;
   self.titleLabel.selectable = NO;
   self.titleLabel.drawsBackground = NO;
-  self.titleLabel.font = [NSFont systemFontOfSize:11];
-  self.titleLabel.textColor = [NSColor labelColor];
+  self.titleLabel.font = [NSFont systemFontOfSize:11 weight:NSFontWeightMedium];
+  self.titleLabel.textColor = [[ThemeManager sharedManager] textPrimaryColor];
   self.titleLabel.lineBreakMode = NSLineBreakByTruncatingTail;
-  self.titleLabel.alignment = NSTextAlignmentCenter;
+  self.titleLabel.alignment = NSTextAlignmentLeft;
   [self addSubview:self.titleLabel];
 
   // Close button
   self.closeButton = [[NSButton alloc] init];
   self.closeButton.translatesAutoresizingMaskIntoConstraints = NO;
-  self.closeButton.title = @"×";
   self.closeButton.bordered = NO;
-  self.closeButton.font = [NSFont systemFontOfSize:14
-                                            weight:NSFontWeightMedium];
   self.closeButton.target = self;
   self.closeButton.action = @selector(closeClicked:);
   self.closeButton.alphaValue = 0;
   [self.closeButton setButtonType:NSButtonTypeMomentaryPushIn];
+  
+  if (@available(macOS 11.0, *)) {
+      NSImage *closeImg = [NSImage imageWithSystemSymbolName:@"xmark.circle.fill" accessibilityDescription:@"Close"];
+      NSImageSymbolConfiguration *config = [NSImageSymbolConfiguration configurationWithPointSize:10 weight:NSFontWeightBold];
+      self.closeButton.image = [closeImg imageWithSymbolConfiguration:config];
+      self.closeButton.imagePosition = NSImageOnly;
+      self.closeButton.contentTintColor = [[ThemeManager sharedManager] textSecondaryColor];
+  } else {
+      self.closeButton.title = @"×";
+  }
+  
   [self addSubview:self.closeButton];
 
   // Constraints
   [NSLayoutConstraint activateConstraints:@[
     [self.titleLabel.leadingAnchor constraintEqualToAnchor:self.leadingAnchor
-                                                  constant:8],
+                                                  constant:12],
     [self.titleLabel.trailingAnchor
         constraintEqualToAnchor:self.closeButton.leadingAnchor
                        constant:-4],
     [self.titleLabel.centerYAnchor constraintEqualToAnchor:self.centerYAnchor],
 
     [self.closeButton.trailingAnchor constraintEqualToAnchor:self.trailingAnchor
-                                                    constant:-4],
+                                                    constant:-8],
     [self.closeButton.centerYAnchor constraintEqualToAnchor:self.centerYAnchor],
-    [self.closeButton.widthAnchor constraintEqualToConstant:18],
-    [self.closeButton.heightAnchor constraintEqualToConstant:18],
+    [self.closeButton.widthAnchor constraintEqualToConstant:16],
+    [self.closeButton.heightAnchor constraintEqualToConstant:16],
   ]];
 
   [self updateTrackingArea];
@@ -106,25 +114,27 @@
 
   if (self.isSelected) {
     self.layer.backgroundColor = [theme surfaceColor].CGColor;
-
-    // Add subtle shadow for active tab
+    self.layer.borderWidth = 1.0;
+    self.layer.borderColor = [theme borderColor].CGColor;
+    
+    // Apple-style subtle shadow
     self.layer.shadowColor = [NSColor blackColor].CGColor;
-    self.layer.shadowOpacity = 0.1;
-    self.layer.shadowOffset = CGSizeMake(0, 1);
+    self.layer.shadowOpacity = 0.05;
+    self.layer.shadowOffset = CGSizeMake(0, -1);
     self.layer.shadowRadius = 2;
 
     self.titleLabel.textColor = [theme textPrimaryColor];
-  } else if (self.isHovered) {
-    NSColor *hoverColor =
-        [theme.isDarkMode ? [NSColor whiteColor] : [NSColor blackColor]
-            colorWithAlphaComponent:0.05];
-    self.layer.backgroundColor = hoverColor.CGColor;
-    self.layer.shadowOpacity = 0;
-    self.titleLabel.textColor = [theme textSecondaryColor];
   } else {
-    self.layer.backgroundColor = [NSColor clearColor].CGColor;
+    self.layer.borderWidth = 0;
     self.layer.shadowOpacity = 0;
-    self.titleLabel.textColor = [theme textSecondaryColor];
+    
+    if (self.isHovered) {
+      self.layer.backgroundColor = [[theme textPrimaryColor] colorWithAlphaComponent:0.05].CGColor;
+      self.titleLabel.textColor = [theme textPrimaryColor];
+    } else {
+      self.layer.backgroundColor = [NSColor clearColor].CGColor;
+      self.titleLabel.textColor = [theme textSecondaryColor];
+    }
   }
 }
 

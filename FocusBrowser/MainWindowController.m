@@ -301,7 +301,7 @@ static const CGFloat kAnimationDuration = 0.2;
   // Border for contrast
   self.focusSidebar.wantsLayer = YES;
   self.focusSidebar.layer.borderWidth = 1.0;
-  self.focusSidebar.layer.borderColor = [[NSColor separatorColor] CGColor];
+  self.focusSidebar.layer.borderColor = [[ThemeManager sharedManager] borderColor].CGColor;
 
   [self.window.contentView addSubview:self.focusSidebar];
 
@@ -310,8 +310,8 @@ static const CGFloat kAnimationDuration = 0.2;
   stackView.translatesAutoresizingMaskIntoConstraints = NO;
   stackView.orientation = NSUserInterfaceLayoutOrientationVertical;
   stackView.alignment = NSLayoutAttributeCenterX;
-  stackView.spacing = 20;
-  stackView.edgeInsets = NSEdgeInsetsMake(30, 10, 30, 10);
+  stackView.spacing = 24;
+  stackView.edgeInsets = NSEdgeInsetsMake(40, 10, 40, 10);
   [self.focusSidebar addSubview:stackView];
 
   [NSLayoutConstraint activateConstraints:@[
@@ -325,20 +325,20 @@ static const CGFloat kAnimationDuration = 0.2;
   // --- Daily Goal Input ---
   self.goalInput = [[NSTextField alloc] init];
   self.goalInput.translatesAutoresizingMaskIntoConstraints = NO;
-  self.goalInput.placeholderString = @"Focus Goal?";
-  self.goalInput.font = [NSFont systemFontOfSize:11];
+  self.goalInput.placeholderString = @"Goal?";
+  self.goalInput.font = [NSFont systemFontOfSize:11 weight:NSFontWeightMedium];
   self.goalInput.alignment = NSTextAlignmentCenter;
   self.goalInput.bezelStyle = NSTextFieldRoundedBezel;
   self.goalInput.focusRingType = NSFocusRingTypeNone;
   self.goalInput.wantsLayer = YES;
-  self.goalInput.layer.cornerRadius = 8;
-  self.goalInput.backgroundColor = [NSColor colorWithWhite:1.0 alpha:0.1];
-  self.goalInput.textColor = [NSColor labelColor];
+  self.goalInput.layer.cornerRadius = 10;
+  self.goalInput.backgroundColor = [NSColor clearColor];
+  self.goalInput.textColor = [[ThemeManager sharedManager] textPrimaryColor];
   self.goalInput.drawsBackground = NO;
   [stackView addArrangedSubview:self.goalInput];
   [NSLayoutConstraint activateConstraints:@[
     [self.goalInput.widthAnchor constraintEqualToConstant:70],
-    [self.goalInput.heightAnchor constraintEqualToConstant:24]
+    [self.goalInput.heightAnchor constraintEqualToConstant:28]
   ]];
 
   [stackView addArrangedSubview:[self createSeparator]];
@@ -372,7 +372,7 @@ static const CGFloat kAnimationDuration = 0.2;
   // --- Tools Grid ---
   NSStackView *toolsStack = [[NSStackView alloc] init];
   toolsStack.orientation = NSUserInterfaceLayoutOrientationVertical;
-  toolsStack.spacing = 16;
+  toolsStack.spacing = 20;
   toolsStack.alignment = NSLayoutAttributeCenterX;
 
   self.blockerButton = [self createSidebarButton:@"hand.raised"
@@ -407,10 +407,6 @@ static const CGFloat kAnimationDuration = 0.2;
                                        toolTip:@"Focus Dashboard"
                                         action:@selector(showDashboard:)];
   [stackView addArrangedSubview:self.statsButton];
-
-  // Flexible Application
-  [stackView setHuggingPriority:NSLayoutPriorityDefaultLow
-                 forOrientation:NSLayoutConstraintOrientationVertical];
 }
 
 - (NSButton *)createSidebarButton:(NSString *)symbolName
@@ -419,30 +415,32 @@ static const CGFloat kAnimationDuration = 0.2;
                            action:(SEL)action {
   NSButton *button = [[NSButton alloc] init];
   button.translatesAutoresizingMaskIntoConstraints = NO;
-  button.bezelStyle = NSBezelStyleRegularSquare;
   button.bordered = NO;
   button.toolTip = toolTip;
   button.target = self;
   button.action = action;
+  button.wantsLayer = YES;
+  button.layer.cornerRadius = 8;
+  button.contentTintColor = [[ThemeManager sharedManager] textSecondaryColor];
 
   if (@available(macOS 11.0, *)) {
     NSImage *image = [NSImage imageWithSystemSymbolName:symbolName
                                accessibilityDescription:title];
     NSImageSymbolConfiguration *config = [NSImageSymbolConfiguration
-        configurationWithPointSize:20
-                            weight:NSFontWeightRegular];
+        configurationWithPointSize:18
+                            weight:NSFontWeightMedium];
     button.image = [image imageWithSymbolConfiguration:config];
   } else {
-    button.title = title; // Fallback
+    button.title = title;
   }
 
   button.imagePosition = NSImageAbove;
   button.title = title;
-  button.font = [NSFont systemFontOfSize:10 weight:NSFontWeightMedium];
+  button.font = [NSFont systemFontOfSize:9 weight:NSFontWeightBold];
   button.imageScaling = NSImageScaleProportionallyDown;
 
   [NSLayoutConstraint activateConstraints:@[
-    [button.widthAnchor constraintEqualToConstant:50],
+    [button.widthAnchor constraintEqualToConstant:56],
     [button.heightAnchor constraintEqualToConstant:50]
   ]];
 
@@ -1644,28 +1642,32 @@ static const CGFloat kAnimationDuration = 0.2;
   // Window background
   self.window.backgroundColor = [theme backgroundColor];
 
-  // Chrome
-  self.chromeContainer.layer.backgroundColor = [theme surfaceColor].CGColor;
+  // Chrome - Soft Glassmorphism or solid background
+  self.chromeContainer.layer.backgroundColor = [theme backgroundColor].CGColor;
+  
+  // Update address bar colors
+  self.addressBar.backgroundColor = [theme surfaceColor];
+  self.addressBar.textColor = [theme textPrimaryColor];
+  
+  // Progress bar
+  self.progressBar.layer.backgroundColor = [[NSColor controlAccentColor] CGColor];
 
   // Focus Sidebar - Glassmorphism
   self.focusSidebar.layer.borderColor = [theme borderColor].CGColor;
-  // Do NOT set background color for NSVisualEffectView, it handles itself.
   if (![self.focusSidebar isKindOfClass:[NSVisualEffectView class]]) {
     self.focusSidebar.layer.backgroundColor =
         [theme elevatedSurfaceColor].CGColor;
   }
 
-  // Address Bar
-  self.addressBar.backgroundColor = [theme elevatedSurfaceColor];
-  self.addressBar.textColor = [theme textPrimaryColor];
-
-  if (self.timerLabel) {
-    self.timerLabel.textColor = [theme textPrimaryColor];
-  }
-
   // Refresh Tabs
   for (TabButton *btn in self.tabButtons) {
     [btn updateAppearance];
+  }
+  
+  // Update tool buttons
+  NSArray *buttons = @[self.backButton, self.forwardButton, self.reloadButton, self.bookmarkButton, self.addTabButton];
+  for (NSButton *btn in buttons) {
+      btn.contentTintColor = [theme textPrimaryColor];
   }
 }
 

@@ -1,4 +1,5 @@
 #import "FocusTimerView.h"
+#import "ThemeManager.h"
 #import <QuartzCore/QuartzCore.h>
 
 @interface FocusTimerView ()
@@ -14,7 +15,7 @@
   if (self) {
     self.wantsLayer = YES;
     _progress = 1.0;
-    _strokeWidth = 4.0;
+    _strokeWidth = 3.5;
     _progressColor = [NSColor systemGreenColor];
 
     [self setupLayers];
@@ -26,7 +27,7 @@
   // Background Circle
   self.backgroundLayer = [CAShapeLayer layer];
   self.backgroundLayer.fillColor = [NSColor clearColor].CGColor;
-  self.backgroundLayer.strokeColor = [[NSColor tertiaryLabelColor] CGColor];
+  self.backgroundLayer.strokeColor = [[ThemeManager sharedManager] borderColor].CGColor;
   self.backgroundLayer.lineWidth = self.strokeWidth;
   self.backgroundLayer.lineCap = kCALineCapRound;
   [self.layer addSublayer:self.backgroundLayer];
@@ -46,8 +47,9 @@
   // Text Layer
   self.textLayer = [CATextLayer layer];
   self.textLayer.alignmentMode = kCAAlignmentCenter;
-  self.textLayer.fontSize = 12.0;
-  self.textLayer.foregroundColor = [NSColor labelColor].CGColor;
+  self.textLayer.fontSize = 13.0;
+  self.textLayer.font = (__bridge CFTypeRef)[NSFont monospacedDigitSystemFontOfSize:13 weight:NSFontWeightSemibold];
+  self.textLayer.foregroundColor = [[ThemeManager sharedManager] textPrimaryColor].CGColor;
   self.textLayer.contentsScale = [NSScreen mainScreen].backingScaleFactor;
   [self.layer addSublayer:self.textLayer];
 }
@@ -121,12 +123,9 @@
 }
 
 - (void)updateLayer {
-  self.textLayer.foregroundColor = [NSColor labelColor].CGColor;
-  if (self.progressLayer.strokeColor ==
-      [[NSColor tertiaryLabelColor]
-          CGColor]) { // Check if we should update inactive color
-                      // Don't override active color
-  }
+  [super updateLayer];
+  self.backgroundLayer.strokeColor = [[ThemeManager sharedManager] borderColor].CGColor;
+  self.textLayer.foregroundColor = [[ThemeManager sharedManager] textPrimaryColor].CGColor;
 }
 
 - (void)startPulseAnimation {
