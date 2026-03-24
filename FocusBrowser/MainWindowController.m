@@ -80,6 +80,9 @@ static const CGFloat kAnimationDuration = 0.2;
 @property(strong, nonatomic) NSLayoutConstraint *progressWidthConstraint;
 @property(strong, nonatomic) NSLayoutConstraint *goalProgressWidthConstraint;
 
+@property(strong, nonatomic) NSTrackingArea *hoverRevealArea;
+@property(assign, nonatomic) BOOL isUIRevealedViaHover;
+
 // Controllers
 @property(strong, nonatomic) SettingsWindowController *settingsController;
 @property(strong, nonatomic) BookmarksWindowController *bookmarksController;
@@ -220,6 +223,7 @@ static const CGFloat kAnimationDuration = 0.2;
   [self setupConstraints:mainView];
 
   [self updateGoalProgress];
+  [self updateHoverTrackingArea];
 }
 
 - (void)setupNavigationBar {
@@ -1496,21 +1500,55 @@ static const CGFloat kAnimationDuration = 0.2;
   if ([self.notesPanel isVisible])
     [self.notesPanel hide];
 
-  [NSAnimationContext
-      runAnimationGroup:^(NSAnimationContext *context) {
-        context.duration = kAnimationDuration;
-        self.chromeContainer.animator.alphaValue = enabled ? 0 : 1;
-        if (enabled) {
-          self.contentTopConstraint.active = NO;
-          self.contentTopToWindowConstraint.active = YES;
-        } else {
-          self.contentTopToWindowConstraint.active = NO;
-          self.contentTopConstraint.active = YES;
-        }
-      }
-      completionHandler:^{
-        self.chromeContainer.hidden = enabled;
-      }];
+  [NSAnimationContext runAnimationGroup:^(NSAnimationContext *context) {
+    context.duration = 0.4;
+    context.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+    
+    self.chromeContainer.animator.alphaValue = (enabled && !self.isUIRevealedViaHover) ? 0.0 : 1.0;
+    
+    if (enabled && !self.isUIRevealedViaHover) {
+      self.contentTopConstraint.active = NO;
+      self.contentTopToWindowConstraint.active = YES;
+    } else {
+      self.contentTopToWindowConstraint.active = NO;
+      self.contentTopConstraint.active = YES;
+    }
+    
+    [self.window.contentView layoutSubtreeIfNeeded];
+  } completionHandler:^{
+    self.chromeContainer.hidden = (enabled && !self.isUIRevealedViaHover);
+    [self updateHoverTrackingArea];
+  }];
+}
+
+- (void)updateHoverTrackingArea {
+  if (self.hoverRevealArea) {
+    [self.window.contentView removeTrackingArea:self.hoverRevealArea];
+  }
+
+  // Top area for reveal
+  NSRect trackingRect = NSMakeRect(0, self.window.contentView.bounds.size.height - 40, 
+                                   self.window.contentView.bounds.size.width, 40);
+  
+  self.hoverRevealArea = [[NSTrackingArea alloc] initWithRect:trackingRect
+                                                      options:NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways | NSTrackingInVisibleRect
+                                                        owner:self
+                                                     userInfo:nil];
+  [self.window.contentView addTrackingArea:self.hoverRevealArea];
+}
+
+- (void)mouseEntered:(NSEvent *)event {
+  if ([[FocusEngine sharedEngine] isZenModeActive] && !self.isUIRevealedViaHover) {
+    self.isUIRevealedViaHover = YES;
+    [self setFocusModeEnabled:YES];
+  }
+}
+
+- (void)mouseExited:(NSEvent *)event {
+  if ([[FocusEngine sharedEngine] isZenModeActive] && self.isUIRevealedViaHover) {
+    self.isUIRevealedViaHover = NO;
+    [self setFocusModeEnabled:YES];
+  }
 }
 
 - (void)updateNavigationButtons {
@@ -1552,6 +1590,10 @@ static const CGFloat kAnimationDuration = 0.2;
 - (void)windowDidBecomeKey:(NSNotification *)notification {
   [self updateNavigationButtons];
   [self updateGoalProgress];
+}
+
+- (void)windowDidResize:(NSNotification *)notification {
+  [self updateHoverTrackingArea];
 }
 
 - (void)injectStatsIntoWebView:(WKWebView *)webView {
