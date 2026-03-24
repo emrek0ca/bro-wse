@@ -4,6 +4,9 @@ FocusBrowser is a productivity-oriented macOS web browser built with Objective-C
 
 ## Recent Improvements
 
+- **Memory Optimization**: Implemented intelligent **Tab Suspension** (Sekme Askıya Alma). Inactive tabs' web views are discarded when many tabs are open to maintain peak performance and low RAM usage.
+- **Smooth Transitions**: Added hardware-accelerated fade-in/out animations for tab switching, providing a more refined and Apple-like experience.
+- **Enhanced Sidebar**: Refined typography and spacing using SF Pro Bold/Medium for a more modern productivity dashboard.
 - **History Management**: Added `HistoryManager` to record and store browsing history using secure coding.
 - **Enhanced Settings**: Completely redesigned Settings UI using `NSStackView` and modern Apple-inspired aesthetics.
 - **Improved Zen Mode**: Added hover-to-reveal functionality for the navigation bar during focus sessions.

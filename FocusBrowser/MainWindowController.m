@@ -1087,40 +1087,65 @@ static const CGFloat kAnimationDuration = 0.2;
 }
 
 - (void)selectTabAtIndex:(NSInteger)index {
-  if (index < 0 || index >= self.tabs.count)
+  if (index < 0 || index >= self.tabs.count || index == self.currentTabIndex)
     return;
 
-  if (self.currentTabIndex >= 0 && self.currentTabIndex < self.tabs.count) {
-    [self.tabs[self.currentTabIndex].webView removeFromSuperview];
-    if (self.currentTabIndex < self.tabButtons.count) {
-      self.tabButtons[self.currentTabIndex].isSelected = NO;
-    }
+  BrowserTab *oldTab = (self.currentTabIndex >= 0) ? self.tabs[self.currentTabIndex] : nil;
+  self.currentTabIndex = index;
+  BrowserTab *newTab = self.tabs[index];
+  
+  if (oldTab && self.currentTabIndex < self.tabButtons.count) {
+      // De-select old button immediately
+      for (TabButton *btn in self.tabButtons) btn.isSelected = NO;
   }
 
-  self.currentTabIndex = index;
-  BrowserTab *tab = self.tabs[index];
-  tab.webView.translatesAutoresizingMaskIntoConstraints = NO;
-  [self.contentView addSubview:tab.webView
+  // Resume if suspended
+  if (newTab.isSuspended) {
+      [newTab resume];
+  }
+
+  // Prepare new tab for fade in
+  newTab.webView.alphaValue = 0.0;
+  newTab.webView.translatesAutoresizingMaskIntoConstraints = NO;
+  [self.contentView addSubview:newTab.webView
                     positioned:NSWindowBelow
                     relativeTo:self.blockedPageView];
-
+  
   [NSLayoutConstraint activateConstraints:@[
-    [tab.webView.leadingAnchor
-        constraintEqualToAnchor:self.contentView.leadingAnchor],
-    [tab.webView.trailingAnchor
-        constraintEqualToAnchor:self.contentView.trailingAnchor],
-    [tab.webView.topAnchor constraintEqualToAnchor:self.contentView.topAnchor],
-    [tab.webView.bottomAnchor
-        constraintEqualToAnchor:self.contentView.bottomAnchor],
+    [newTab.webView.leadingAnchor constraintEqualToAnchor:self.contentView.leadingAnchor],
+    [newTab.webView.trailingAnchor constraintEqualToAnchor:self.contentView.trailingAnchor],
+    [newTab.webView.topAnchor constraintEqualToAnchor:self.contentView.topAnchor],
+    [newTab.webView.bottomAnchor constraintEqualToAnchor:self.contentView.bottomAnchor],
   ]];
+
+  [NSAnimationContext runAnimationGroup:^(NSAnimationContext *context) {
+    context.duration = 0.2;
+    context.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+    
+    if (oldTab) {
+        oldTab.webView.animator.alphaValue = 0.0;
+    }
+    newTab.webView.animator.alphaValue = 1.0;
+    
+  } completionHandler:^{
+    if (oldTab) {
+        [oldTab.webView removeFromSuperview];
+        // Memory Optimization: Suspend background tabs if we have many
+        if (self.tabs.count > 10) {
+            [oldTab suspend];
+        }
+    }
+    [self.window makeFirstResponder:newTab.webView];
+  }];
 
   if (index < self.tabButtons.count)
     self.tabButtons[index].isSelected = YES;
-  self.addressBar.stringValue = tab.webView.URL.absoluteString ?: @"";
-  self.findBar.webView = tab.webView;
+    
+  self.addressBar.stringValue = newTab.webView.URL.absoluteString ?: @"";
+  self.findBar.webView = newTab.webView;
   [self updateNavigationButtons];
   [self updateBookmarkButton];
-  [self checkBlockedSite:tab.webView.URL.absoluteString];
+  [self checkBlockedSite:newTab.webView.URL.absoluteString];
 }
 
 - (void)closeTabAtIndex:(NSInteger)index {
@@ -1195,20 +1220,29 @@ static const CGFloat kAnimationDuration = 0.2;
   if (input.length == 0)
     return;
 
-  if (![input hasPrefix:@"http://"] && ![input hasPrefix:@"https://"]) {
-    if ([input containsString:@"."] && ![input containsString:@" "]) {
-      input = [@"https://" stringByAppendingString:input];
-    } else {
-      input = [[SettingsManager sharedManager] searchURLForQuery:input];
-    }
+  // Modern URL detection
+  BOOL isURL = NO;
+  if ([input hasPrefix:@"http://"] || [input hasPrefix:@"https://"] || 
+      [input hasPrefix:@"file://"] || [input hasPrefix:@"focus://"]) {
+    isURL = YES;
+  } else if ([input containsString:@"."] && ![input containsString:@" "]) {
+    // Basic domain check (e.g., apple.com)
+    isURL = YES;
+    input = [@"https://" stringByAppendingString:input];
   }
 
-  NSURL *url = [NSURL URLWithString:input];
-  if (url && self.currentTabIndex >= 0 &&
-      self.currentTabIndex < self.tabs.count) {
-    [self.tabs[self.currentTabIndex] loadURL:url];
+  NSURL *url;
+  if (isURL) {
+    url = [NSURL URLWithString:input];
+  } else {
+    // Search
+    url = [NSURL URLWithString:[[SettingsManager sharedManager] searchURLForQuery:input]];
   }
-  [self.window makeFirstResponder:self.tabs[self.currentTabIndex].webView];
+
+  if (url && self.currentTabIndex >= 0 && self.currentTabIndex < self.tabs.count) {
+    [self.tabs[self.currentTabIndex] loadURL:url];
+    [self.window makeFirstResponder:self.tabs[self.currentTabIndex].webView];
+  }
 }
 
 - (void)goBack:(id)sender {
