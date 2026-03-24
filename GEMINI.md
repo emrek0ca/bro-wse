@@ -4,12 +4,16 @@ FocusBrowser is a productivity-oriented macOS web browser built with Objective-C
 
 ## Recent Improvements
 
-- **Memory Optimization**: Implemented intelligent **Tab Suspension** (Sekme Askıya Alma). Inactive tabs' web views are discarded when many tabs are open to maintain peak performance and low RAM usage.
-- **Smooth Transitions**: Added hardware-accelerated fade-in/out animations for tab switching, providing a more refined and Apple-like experience.
+- **Premium Tactile Feedback**: Integrated `NSHapticFeedbackManager` for subtle vibration feedback on core productivity buttons, providing a more "Apple-like" premium feel.
+- **Modernized Productivity Tools**: 
+    - **Breathing Exercise v2**: Completely redesigned with Glassmorphism, smooth scaling animations, and phase-specific color transitions.
+    - **Quick Notes v2**: Upgraded with a blurred sidebar design, better typography, and automatic state saving.
+- **Memory Optimization**: Implemented intelligent **Tab Suspension** (Sekme Askıya Alma) to discard background web views when RAM is needed.
+- **Safari-style Progress Bar**: Redesigned the loading progress bar with smoother animations and hardware-accelerated transitions.
 - **Enhanced Sidebar**: Refined typography and spacing using SF Pro Bold/Medium for a more modern productivity dashboard.
+- **Improved Zen Mode**: Added hover-to-reveal functionality for the navigation bar during focus sessions.
 - **History Management**: Added `HistoryManager` to record and store browsing history using secure coding.
 - **Enhanced Settings**: Completely redesigned Settings UI using `NSStackView` and modern Apple-inspired aesthetics.
-- **Improved Zen Mode**: Added hover-to-reveal functionality for the navigation bar during focus sessions.
 - **Search Engine Integration**: Fully integrated customizable search engines (Google, DuckDuckGo, Bing).
 - **Start Page v2**: Upgraded the internal start page with live stats and a cleaner Apple-style design.
 

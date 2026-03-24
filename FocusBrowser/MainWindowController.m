@@ -1369,6 +1369,7 @@ static const CGFloat kAnimationDuration = 0.2;
 #pragma mark - Focus Features
 
 - (void)toggleTimer:(id)sender {
+  [self performHapticFeedback];
   FocusEngine *engine = [FocusEngine sharedEngine];
 
   // Visual feedback animation
@@ -1473,6 +1474,7 @@ static const CGFloat kAnimationDuration = 0.2;
 }
 
 - (void)toggleBlocker:(id)sender {
+  [self performHapticFeedback];
   FocusEngine *engine = [FocusEngine sharedEngine];
   SiteBlocker *blocker = [SiteBlocker sharedBlocker];
 
@@ -1513,9 +1515,11 @@ static const CGFloat kAnimationDuration = 0.2;
 }
 
 - (void)toggleNotes:(id)sender {
+  [self performHapticFeedback];
   [self.notesPanel toggle];
 }
 - (void)showBreathing:(id)sender {
+  [self performHapticFeedback];
   self.breathingView.hidden = NO;
 }
 
@@ -1613,20 +1617,36 @@ static const CGFloat kAnimationDuration = 0.2;
 }
 
 - (void)updateProgress:(double)progress {
-  if (progress > 0 && progress < 1) {
-    self.progressBar.alphaValue = 1;
-    self.progressWidthConstraint.constant =
-        self.chromeContainer.bounds.size.width * progress;
+  if (progress < 1.0) {
+    if (self.progressBar.alphaValue == 0) {
+        self.progressBar.alphaValue = 1.0;
+    }
+    
+    [NSAnimationContext runAnimationGroup:^(NSAnimationContext *context) {
+        context.duration = 0.3;
+        context.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+        self.progressWidthConstraint.animator.constant = self.chromeContainer.bounds.size.width * progress;
+    } completionHandler:nil];
+    
   } else {
-    [NSAnimationContext
-        runAnimationGroup:^(NSAnimationContext *context) {
-          context.duration = 0.2;
-          self.progressBar.animator.alphaValue = 0;
-        }
-        completionHandler:^{
-          self.progressWidthConstraint.constant = 0;
+    [NSAnimationContext runAnimationGroup:^(NSAnimationContext *context) {
+        context.duration = 0.4;
+        self.progressWidthConstraint.animator.constant = self.chromeContainer.bounds.size.width;
+    } completionHandler:^{
+        [NSAnimationContext runAnimationGroup:^(NSAnimationContext *ctx) {
+            ctx.duration = 0.2;
+            self.progressBar.animator.alphaValue = 0;
+        } completionHandler:^{
+            self.progressWidthConstraint.constant = 0;
         }];
+    }];
   }
+}
+
+- (void)performHapticFeedback {
+    if (@available(macOS 10.11, *)) {
+        [[NSHapticFeedbackManager defaultPerformer] showFeedback:NSHapticFeedbackPatternGeneric forClickStage:NSHapticFeedbackFeedbackPatternTypeGeneric];
+    }
 }
 
 #pragma mark - NSWindowDelegate
