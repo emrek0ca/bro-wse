@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus Start</title>
+    <style>
+        :root {
+            --bg-color: #1e1e1e;
+            --text-color: #ffffff;
+            --accent-color: #0a84ff;
+            --secondary-bg: #2c2c2e;
+            --input-bg: #3a3a3c;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #fbfbfd;
+                --text-color: #1d1d1f;
+                --accent-color: #007aff;
+                --secondary-bg: #f2f2f7;
+                --input-bg: #e5e5ea;
+            }
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-family);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            text-align: center;
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+        }
+
+        .time {
+            font-size: 6rem;
+            font-weight: 200;
+            letter-spacing: -2px;
+            margin-bottom: 10px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .date {
+            font-size: 1.5rem;
+            font-weight: 400;
+            color: var(--accent-color);
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        .search-container {
+            position: relative;
+            width: 100%;
+            margin-bottom: 50px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 16px 24px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 16px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            outline: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
+        }
+
+        .search-input:focus {
+            transform: scale(1.02);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            width: 100%;
+        }
+
+        .stat-card {
+            background-color: var(--secondary-bg);
+            padding: 20px;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.2s;
+            cursor: default;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .greeting {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 1rem;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="greeting" id="greeting">Good Morning</div>
+
+    <div class="container">
+        <div class="time" id="clock">00:00</div>
+        <div class="date" id="date">Monday, January 1</div>
+
+        <div class="search-container">
+            <input type="text" class="search-input" id="searchInput" placeholder="Search the web..." autofocus>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">--</div>
+                <div class="stat-label">Focus Score</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">--</div>
+                <div class="stat-label">Pomodoros</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">--</div>
+                <div class="stat-label">Blocked</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('clock').textContent = `${hours}:${minutes}`;
+
+            const options = { weekday: 'long', month: 'long', day: 'numeric' };
+            document.getElementById('date').textContent = now.toLocaleDateString(undefined, options);
+
+            const hr = now.getHours();
+            let greet = "Welcome";
+            if (hr < 12) greet = "Good Morning";
+            else if (hr < 18) greet = "Good Afternoon";
+            else greet = "Good Evening";
+            document.getElementById('greeting').textContent = greet;
+        }
+
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // Search functionality
+        const input = document.getElementById('searchInput');
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const query = input.value.trim();
+                if (query) {
+                    if (query.startsWith('http')) {
+                        window.location.href = query;
+                    } else if (query.includes('.') && !query.includes(' ')) {
+                        window.location.href = 'https://' + query;
+                    } else {
+                        // Default to Google for now
+                        window.location.href = 'https://www.google.com/search?q=' + encodeURIComponent(query);
+                    }
+                }
+            }
+        });
+
+        // Native Bridge
+        window.updateStats = function (data) {
+            if (!data) return;
+
+            document.querySelectorAll('.stat-card').forEach(card => {
+                const label = card.querySelector('.stat-label').textContent.toLowerCase();
+                const valueEl = card.querySelector('.stat-value');
+
+                if (label.includes('score')) {
+                    valueEl.textContent = Math.round(data.score);
+                    card.title = data.scoreDescription || '';
+                } else if (label.includes('pomodoros')) {
+                    valueEl.textContent = data.pomodoros;
+                } else if (label.includes('blocked')) {
+                    valueEl.textContent = data.blocked;
+                }
+            });
+        };
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,24 @@
+[
+  {
+    "trigger": {
+      "url-filter": ".*",
+      "if-domain": ["*google-analytics.com", "*doubleclick.net", "*googlesyndication.com", "*adservice.google.com"]
+    },
+    "action": { "type": "block" }
+  },
+  {
+    "trigger": {
+        "url-filter": "(/ads/|/ad/|/banner/|/banners/|/ad_)",
+         "load-type": ["third-party"]
+    },
+    "action": { "type": "block" }
+  },
+  {
+      "trigger": {
+          "url-filter": ".*",
+          "if-domain": ["*facebook.net", "*connect.facebook.net"],
+          "resource-type": ["script"]
+      },
+      "action": { "type": "block" }
+  }
+]
