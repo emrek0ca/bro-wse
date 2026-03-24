@@ -1357,6 +1357,15 @@ static const CGFloat kAnimationDuration = 0.2;
   if (engine.state == FocusStateIdle) {
     [engine startFlowSession:25 strict:YES];
   } else if (engine.state == FocusStateFlow) {
+    if (engine.isStrict) {
+        NSAlert *alert = [[NSAlert alloc] init];
+        alert.messageText = @"Strict Mode Active";
+        alert.informativeText = @"You cannot abandon a strict session. Stay focused!";
+        [alert addButtonWithTitle:@"OK"];
+        [alert runModal];
+        return;
+    }
+    
     NSAlert *alert = [[NSAlert alloc] init];
     alert.messageText = @"Abandon Session?";
     alert.informativeText =
@@ -1364,7 +1373,7 @@ static const CGFloat kAnimationDuration = 0.2;
     [alert addButtonWithTitle:@"Resume"];
     [alert addButtonWithTitle:@"Abandon"];
     if ([alert runModal] == NSAlertSecondButtonReturn) {
-      [engine endSession];
+      [engine abandonSession];
     }
   } else {
     [engine endSession];
@@ -1396,13 +1405,15 @@ static const CGFloat kAnimationDuration = 0.2;
     self.focusTimerView.timeString = @"25:00";
     self.focusTimerView.progress = 1.0;
     [self.focusTimerView stopPulseAnimation];
+    self.timerButton.enabled = YES;
     break;
   case FocusStateFlow:
-    btnIcon = @"pause.fill";
+    btnIcon = engine.isStrict ? @"lock.fill" : @"stop.fill";
     stateColor = [NSColor systemGreenColor];
     sidebarBorderColor = [NSColor systemGreenColor];
     borderWidth = 2.0;
     [self.focusTimerView startPulseAnimation];
+    self.timerButton.enabled = !engine.isStrict;
     break;
   case FocusStateBreak:
     btnIcon = @"forward.fill";
@@ -1410,6 +1421,7 @@ static const CGFloat kAnimationDuration = 0.2;
     sidebarBorderColor = [NSColor systemBlueColor];
     borderWidth = 2.0;
     [self.focusTimerView startPulseAnimation];
+    self.timerButton.enabled = YES;
     break;
   }
 

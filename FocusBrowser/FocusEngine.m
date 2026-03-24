@@ -20,10 +20,10 @@ static NSString *const kPersistenceKey = @"FocusEngineSelectedState";
 @property(nonatomic, strong)
     NSDate *targetTimestamp; // Absolute completion time
 @property(nonatomic, strong) NSString *currentSessionID;
+@property(nonatomic, readwrite) BOOL isStrict;
 
 // Internals
 @property(nonatomic, strong) NSTimer *timer;
-@property(nonatomic, assign) BOOL isStrict;
 
 @end
 
@@ -44,7 +44,7 @@ static NSString *const kPersistenceKey = @"FocusEngineSelectedState";
   self = [super init];
   if (self) {
     _state = FocusStateIdle;
-    _isStrict = YES;
+    _isStrict = NO;
     [self recoverState]; // Crash Recovery Algorithm
   }
   return self;
@@ -58,7 +58,7 @@ static NSString *const kPersistenceKey = @"FocusEngineSelectedState";
     return;
   }
 
-  NSLog(@"[FocusEngine] ACCEPTED StartFlow: %ld min", (long)minutes);
+  NSLog(@"[FocusEngine] ACCEPTED StartFlow: %ld min (Strict: %d)", (long)minutes, strict);
   self.isStrict = strict;
 
   // Create new session ID
@@ -73,9 +73,12 @@ static NSString *const kPersistenceKey = @"FocusEngineSelectedState";
     return; // Silent ignore
   }
 
+  if (self.isStrict) {
+      NSLog(@"[FocusEngine] ABANDON REJECTED: Strict mode is active.");
+      return;
+  }
+
   NSLog(@"[FocusEngine] ABANDON Flow");
-  // Metrics: Mark as blocked/failed? Or just incomplete.
-  // For v2.0 we just go to Idle.
   [self transitionToState:FocusStateIdle duration:0];
 }
 
@@ -212,6 +215,7 @@ static NSString *const kPersistenceKey = @"FocusEngineSelectedState";
     dict[@"sessionID"] = self.currentSessionID;
   }
   dict[@"totalDuration"] = @(self.totalDuration);
+  dict[@"isStrict"] = @(self.isStrict);
 
   [defaults setObject:dict forKey:kPersistenceKey];
 }
@@ -229,6 +233,7 @@ static NSString *const kPersistenceKey = @"FocusEngineSelectedState";
   NSDate *target = dict[@"targetTimestamp"];
   self.currentSessionID = dict[@"sessionID"];
   self.totalDuration = [dict[@"totalDuration"] doubleValue];
+  self.isStrict = [dict[@"isStrict"] boolValue];
 
   if (!target) {
     // Invalid state, reset

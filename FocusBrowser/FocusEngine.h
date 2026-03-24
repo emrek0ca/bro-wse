@@ -24,6 +24,7 @@ typedef NS_ENUM(NSInteger, FocusState) {
 @property(nonatomic, readonly) NSTimeInterval totalDuration;
 @property(nonatomic, readonly) CGFloat progress;     // 0.0 - 1.0
 @property(nonatomic, readonly) BOOL isZenModeActive; // Flow durumunda YES
+@property(nonatomic, readonly) BOOL isStrict;        // Strict mode active?
 
 // Singleton Erişimi
 + (instancetype)sharedEngine;
